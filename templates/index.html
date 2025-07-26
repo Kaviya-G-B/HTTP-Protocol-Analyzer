@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Protocol Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>HTTP Protocol Analyzer</h1>
+        <div id="packet-list">
+            <p>Loading captured packets...</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchPackets() {
+            try {
+                const response = await fetch('/packets');
+                const packets = await response.json();
+                console.log('Fetched packets:', packets);
+
+                const packetList = document.getElementById('packet-list');
+                packetList.innerHTML = '';
+
+                if (packets.length === 0) {
+                    packetList.innerHTML = '<p>No HTTP packets captured yet.</p>';
+                } else {
+                    packets.forEach(packet => {
+                        const packetDiv = document.createElement('div');
+                        packetDiv.className = 'packet';
+                        packetDiv.innerHTML = `
+                            <p><strong>Source IP:</strong> ${packet.src_ip}</p>
+                            <p><strong>Destination IP:</strong> ${packet.dst_ip}</p>
+                            <p><strong>Headers:</strong> <pre>${JSON.stringify(packet.headers, null, 2)}</pre></p>
+                            <p><strong>Body:</strong> <pre>${packet.body}</pre></p>
+                            <hr>
+                        `;
+                        packetList.appendChild(packetDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching packets:', error);
+                document.getElementById('packet-list').innerHTML = '<p>Error fetching packets.</p>';
+            }
+        }
+
+        // Fetch packets on page load
+        window.onload = fetchPackets;
+    </script>
+</body>
+</html>
